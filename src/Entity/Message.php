@@ -9,19 +9,24 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * Improvements:
- *   - `createdAt` should be stored as a `TIMESTAMP` type for efficiency and compatibility with time zone handling.
- *   - Storing `createdAt` as `TIMESTAMP` ensures efficient storage, querying, and handling of time zones.
+ * SUGEGESTED IMPROVEMENT AFTER REVIEW
  *
- * - Validation for 'text' and 'status' values.
+ * Missing migration: Please generate a migration for this entity.
+ *
+ * Date and time handling:
+ *  - `createdAt` should be stored as a `TIMESTAMP` type for efficiency and compatibility with time zone handling.
+ *   - Storing `createdAt` as `TIMESTAMP` ensures efficient storage, querying, and handling of time zones.
+ *   - Move createdAt to a `Timestampable` Trait to automatically manage `createdAt` and avoid duplicates.
+ *
+ * Validation for 'text' and 'status' values:
  *   - Ensures data integrity by verifying that the input values for 'text' and 'status' conform to expected formats and limits.
  *   - Helps prevent invalid or inconsistent data from being saved to the database.
  *
- * - Consider using `ENUM` for the 'status' field.
+ * - Consider using `ENUM` for the 'status' field:
  *   - Using `ENUM` for 'status' ensures that only predefined values can be stored, which enhances data consistency and prevents errors.
  *   - It makes the code more readable and self-documenting by clearly defining the possible statuses.
  *
- * - Consider using Value Objects (e.g., for UUID) for better encapsulation.
+ * - Consider using Value Objects (e.g., for UUID) for better encapsulation:
  *   - Encapsulating the UUID logic in a Value Object promotes better code organization and ensures that the logic for generating and validating UUIDs is centralized.
  *   - It enhances maintainability by keeping the logic for UUID handling separate from the entity itself.
  *
