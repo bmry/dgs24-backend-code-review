@@ -10,35 +10,30 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Improvements:
- * - createdAt should be a timestamp type for efficiency.
- *   - Using `TIMESTAMP` ensures efficient storage, querying, and compatibility with time zone handling.
- *   - This also allows easy support for time-based queries.
+ *   - `createdAt` should be stored as a `TIMESTAMP` type for efficiency and compatibility with time zone handling.
+ *   - Storing `createdAt` as `TIMESTAMP` ensures efficient storage, querying, and handling of time zones.
  *
  * - Validation for 'text' and 'status' values.
  *   - Ensures data integrity by verifying that the input values for 'text' and 'status' conform to expected formats and limits.
  *   - Helps prevent invalid or inconsistent data from being saved to the database.
  *
- * - Consider using ENUM for the status field to limit possible values.
+ * - Consider using `ENUM` for the 'status' field.
  *   - Using `ENUM` for 'status' ensures that only predefined values can be stored, which enhances data consistency and prevents errors.
  *   - It makes the code more readable and self-documenting by clearly defining the possible statuses.
- *
- * - Handle time zone issues with 'createdAt'.
- *   - Storing `createdAt` as UTC and handling time zone conversions during retrieval ensures that time zone differences don’t cause inconsistencies in recorded times.
- *   - This make the app adaptable to users in different time zones.
  *
  * - Consider using Value Objects (e.g., for UUID) for better encapsulation.
  *   - Encapsulating the UUID logic in a Value Object promotes better code organization and ensures that the logic for generating and validating UUIDs is centralized.
  *   - It enhances maintainability by keeping the logic for UUID handling separate from the entity itself.
  *
  * - Add lifecycle callbacks for automatic setting of 'createdAt'.
- *   - Using `@PrePersist` or similar lifecycle callbacks can ensure that the `createdAt` field is automatically set when a new entity is created, reducing the risk of manual errors.
+ *   - Using `@PrePersist` or similar lifecycle callbacks ensures that the `createdAt` field is automatically set when a new entity is created, reducing the risk of manual errors.
  *   - It promotes consistency and reduces the need for redundant code.
  *
- * - UUID validation added to ensure the field contains a valid UUID format.
+ * - UUID validation should be added to ensure the field contains a valid UUID format.
  *   - Ensures that the UUID stored in the database follows a valid and standardized format, preventing invalid entries.
  *   - Provides better consistency across the system by ensuring that only valid UUIDs are accepted.
  *
- * - UUID can now be auto-generated if not provided using Ramsey\Uuid.
+ * - UUID can now be auto-generated if not provided using `Ramsey\Uuid`.
  *   - The `Ramsey\Uuid` library allows for automatic generation of UUIDs when none is provided, ensuring that all records have a valid UUID by default.
  *   - This simplifies the code and eliminates the need for manual UUID creation.
  *
@@ -46,6 +41,7 @@ use Doctrine\ORM\Mapping as ORM;
  *   - Guarantees that UUIDs are both valid and consistently generated across all entities, reducing the risk of UUID-related errors in the application.
  *   - Ensures data integrity and simplifies the process of handling UUIDs across multiple services or components in the system.
  */
+
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
@@ -150,46 +146,47 @@ class Message
 
 /**
  * ADDITIONAL COMMENT
- * This class should be refactored to follow Clean Architecture principles.
- * It should be decoupled from the infrastructure (Doctrine ORM) and be a pure domain entity.
+ * This class should be refactored to follow Clean Architecture principles, ensuring it is decoupled from infrastructure concerns
+ * and remains a pure domain entity.
  *
  * Step 1: **Remove Doctrine Annotations** from the entity class.
- * The class is currently tightly coupled to Doctrine ORM. We should remove ORM-specific annotations like
- * #[ORM\Entity] and #[ORM\Column] to ensure this class is a pure domain entity, not tied to any database layer.
- * The mapping of this entity to the database should be handled separately, outside of this class (in a persistence model).
+ * The class is currently coupled to Doctrine ORM. To align with Clean Architecture, we need to remove ORM-specific annotations like
+ * #[ORM\Entity] and #[ORM\Column]. These annotations tightly couple the domain entity to the persistence layer.
+ * The mapping of the entity to the database should be handled in a separate infrastructure layer (e.g., a persistence model).
  *
  * Step 2: **Make the entity immutable.**
- * This class currently has setters and is mutable, which violates Clean Architecture principles.
- * We should make this class immutable by removing all setters and initializing all values through the constructor.
- * The entity should only expose getters to ensure that its state cannot be modified after creation.
+ * The class currently has setters, making it mutable and violating Clean Architecture principles. We should make the entity immutable
+ * by removing setters and initializing all fields through the constructor. The entity should expose only getters to ensure its state
+ * cannot be modified after creation.
  *
- * Constructor should handle initialization and set all fields. Remove setters.
+ * The constructor should handle initialization and set all fields. Remove setters.
  * Example:
  * public function __construct(string $uuid, string $text, ?MessageStatus $status = null)
  * {
  *     $this->uuid = $uuid;
  *     $this->text = $text;
  *     $this->status = $status;
- *     $this->createdAt = new DateTimeImmutable();  // CreatedAt should be automatically set when the entity is created.
+ *     $this->createdAt = new DateTimeImmutable();  // Automatically set CreatedAt when the entity is created.
  * }
  *
- * Step 3: **Move database logic to separate infrastructure layer.**
- * The entity should only hold domain logic. Doctrine-specific logic (such as annotations) and database
- * interactions should be moved to the repository or infrastructure layer, not the domain layer.
+ * Step 3: **Move database logic to a separate infrastructure layer.**
+ * The entity should only contain domain logic. Any database-specific logic, such as Doctrine annotations, and database interactions
+ * should be handled in a repository or an infrastructure layer, keeping the domain model clean and focused on business rules.
  *
  * Step 4: **Create a Doctrine entity class for persistence.**
- * Create a new class `MessageDoctrineEntity` in the infrastructure layer to map this entity to a database table
- * and add the necessary Doctrine-specific annotations like #[ORM\Entity].
- * The `Message` class should remain independent of any database interaction.
+ * In the infrastructure layer, create a new class (e.g., `MessageDoctrineEntity`) to map the entity to a database table.
+ * This class will include necessary Doctrine-specific annotations like #[ORM\Entity].
+ * The domain `Message` class should remain free of infrastructure concerns and should not be responsible for database interactions.
  *
- * Step 5: **Move logic for UUID generation to an external service or factory.**
- * UUID generation should not be done directly in the entity.
- * This could be handled by a UUID generator service or injected through the constructor.
+ * Step 5: **Move UUID generation to an external service or factory.**
+ * The entity should not handle UUID generation directly. This should be the responsibility of an external service or factory.
+ * This can be injected into the constructor of the entity, ensuring the entity remains focused on business logic.
  *
- * Step 6: Refactor status handling with a `MessageStatus` Value Object.**
- * - Instead of using a raw string for the `status`, encapsulate the status in a `MessageStatus` Value Object.
- * - This ensures that status values are validated and managed consistently, and any logic related to status is handled in one place.
- * - The `Message` entity should not manage raw status strings but should work with a `MessageStatus` object, which encapsulates status validation and behavior.
+ * Step 6: **Refactor status handling with a `MessageStatus` Value Object.**
+ * - Instead of using a raw string for the `status` field, encapsulate the status value in a `MessageStatus` Value Object.
+ * - This ensures that the status is validated and managed in a consistent and reusable manner. Any logic related to status should be
+ *   handled within the `MessageStatus` object.
+ * - The `Message` entity should not deal with raw status strings but should work with a `MessageStatus` object, ensuring domain logic is clean.
  *
  * Example:
  * class MessageStatus
@@ -198,7 +195,7 @@ class Message
  *
  *     public function __construct(string $status)
  *     {
- *         // Validate and manage status here.
+ *         // Validate status here
  *         if (!in_array($status, ['sent', 'read'])) {
  *             throw new InvalidArgumentException('Invalid status value');
  *         }
