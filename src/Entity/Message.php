@@ -9,7 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * SUGEGESTED IMPROVEMENT AFTER REVIEW
+ *
+ * VIOLATED CLEAN ARCHITECTURE:
+ * This class should be refactored to follow Clean Architecture principles,
+ * ensuring it is decoupled from Doctrine ORM
+ * and remains a pure domain entity.
  *
  * Missing migration: Please generate a migration for this entity.
  *
