@@ -1,3 +1,22 @@
+# Suggestions for Improvement:
+# 1. Add `uuid` in the examples for `/messages` to ensure the response examples match the defined schema.
+#    - Including `uuid` in the example enhances clarity and consistency for API consumers.
+# 2. Consider specifying additional responses for possible errors, such as `400 Bad Request` for validation errors
+#    (e.g., if `status` contains an invalid value or `text` is too long for `/messages/send`).
+#    - This helps API consumers understand potential failure scenarios.
+# 3. In the `/messages/send` endpoint:
+#    - Specify the expected response body or clarify that the response is empty (e.g., with a `204` description).
+#    - Define constraints for `text`, such as a maximum length, to ensure input validation is clear.
+# 4. Add a `POST` method to `/messages/send` if the operation modifies server state (sending a message), as `GET`
+#    is typically used for retrieval, not action-triggering.
+#    - This aligns with RESTful API conventions and makes intent clearer.
+# 5. Expand on `info` metadata:
+#    - Include a `description` field for the API to provide more context about its purpose and usage.
+# 6. Implement versioning for the API:
+#    - Use a version identifier (e.g., `v1`) in the URL, such as `/api/v1/messages`.
+#    - Versioning ensures backward compatibility and allows iterative improvements without disrupting existing consumers.
+#    - Document a clear strategy for deprecating older versions.
+
 openapi: 3.0.0
 info:
   title: Messages API
@@ -30,7 +49,7 @@ paths:
                     items:
                       type: "object"
                       properties:
-                        uuid: 
+                        uuid:
                           type: "string"
                         text:
                           type: "string"
@@ -41,22 +60,55 @@ paths:
                             - "read"
               example:
                 messages:
-                  - text: "Hello, World!"
+                  - uuid: "123e4567-e89b-12d3-a456-426614174000"
+                    text: "Hello, World!"
                     status: "read"
-                  - text: "How are you today?"
+                  - uuid: "223e4567-e89b-12d3-a456-426614174001"
+                    text: "How are you today?"
                     status: "sent"
-                  - text: "Thanks, I'm fine. How about you?"
+                  - uuid: "323e4567-e89b-12d3-a456-426614174002"
+                    text: "Thanks, I'm fine. How about you?"
                     status: "sent"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  error:
+                    type: "string"
   /messages/send:
-    get:
+    post:
       summary: Send a Message
-      parameters:
-        - name: text
-          in: query
-          description: The text you want to send
-          required: true
-          schema:
-            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                text:
+                  type: "string"
+                  maxLength: 255
       responses:
-        '204':
-          description: Successfully sent
+        '202':
+          description: Message successfully sent
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  error:
+                    type: "string"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  error:
+                    type: "string"
